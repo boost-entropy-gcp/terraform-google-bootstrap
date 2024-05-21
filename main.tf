@@ -58,7 +58,7 @@ resource "google_folder_iam_member" "tmp_project_creator" {
 
 module "seed_project" {
   source                      = "terraform-google-modules/project-factory/google"
-  version                     = "~> 14.0"
+  version                     = "~> 15.0"
   name                        = local.seed_project_id
   random_project_id           = var.random_suffix
   disable_services_on_destroy = false
@@ -90,9 +90,10 @@ module "enable_cross_project_service_account_usage" {
 resource "google_service_account" "org_terraform" {
   count = var.create_terraform_sa ? 1 : 0
 
-  project      = module.seed_project.project_id
-  account_id   = var.tf_service_account_id
-  display_name = var.tf_service_account_name
+  project                      = module.seed_project.project_id
+  account_id                   = var.tf_service_account_id
+  display_name                 = var.tf_service_account_name
+  create_ignore_already_exists = true
 }
 
 /***********************************************

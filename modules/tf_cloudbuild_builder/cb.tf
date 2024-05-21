@@ -88,10 +88,11 @@ resource "google_cloudbuild_trigger" "build_trigger" {
 }
 
 resource "google_service_account" "cb_sa" {
-  count        = var.cloudbuild_sa == "" ? 1 : 0
-  project      = var.project_id
-  account_id   = "tf-cb-builder-sa"
-  display_name = "SA for Terraform builder build trigger. Managed by Terraform."
+  count                        = var.cloudbuild_sa == "" ? 1 : 0
+  project                      = var.project_id
+  account_id                   = "tf-cb-builder-sa"
+  display_name                 = "SA for Terraform builder build trigger. Managed by Terraform."
+  create_ignore_already_exists = true
 }
 
 # https://cloud.google.com/build/docs/securing-builds/configure-user-specified-service-accounts#permissions
@@ -105,7 +106,7 @@ resource "google_project_iam_member" "logs_writer" {
 # https://cloud.google.com/build/docs/securing-builds/store-manage-build-logs#store-custom-bucket
 module "bucket" {
   source  = "terraform-google-modules/cloud-storage/google//modules/simple_bucket"
-  version = "~> 5.0"
+  version = "~> 6.0"
 
   name          = local.log_bucket_name
   project_id    = var.project_id
