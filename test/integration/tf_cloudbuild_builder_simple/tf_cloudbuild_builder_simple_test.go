@@ -34,9 +34,10 @@ func TestTFCloudBuildBuilder(t *testing.T) {
 	bpt.DefineVerify(func(assert *assert.Assertions) {
 		bpt.DefaultVerify(assert)
 
+		location := "us-central1"
 		projectID := bpt.GetStringOutput("project_id")
 		artifactRepo := bpt.GetStringOutput("artifact_repo")
-		artifactRepoDockerRegistry := fmt.Sprintf("us-docker.pkg.dev/%s/%s/terraform", projectID, artifactRepo)
+		artifactRepoDockerRegistry := fmt.Sprintf("%s-docker.pkg.dev/%s/%s/terraform", location, projectID, artifactRepo)
 		schedulerID := bpt.GetStringOutput("scheduler_id")
 		workflowID := bpt.GetStringOutput("workflow_id")
 		triggerFQN := bpt.GetStringOutput("cloudbuild_trigger_id")
@@ -52,7 +53,7 @@ func TestTFCloudBuildBuilder(t *testing.T) {
 		assert.Contains(workflowOP.Get("name").String(), "terraform-runner-workflow", "has the correct name")
 		assert.Equal(fmt.Sprintf("projects/%s/serviceAccounts/terraform-runner-workflow-sa@%s.iam.gserviceaccount.com", projectID, projectID), workflowOP.Get("serviceAccount").String(), "uses expected SA")
 
-		cloudBuildOP := gcloud.Runf(t, "beta builds triggers describe %s --project %s", triggerId, projectID)
+		cloudBuildOP := gcloud.Runf(t, "beta builds triggers describe %s --project %s --region %s", triggerId, projectID, location)
 		log.Print(cloudBuildOP)
 		assert.Equal("tf-cloud-builder-build", cloudBuildOP.Get("name").String(), "has the correct name")
 		assert.Equal(fmt.Sprintf("projects/%s/serviceAccounts/tf-cb-builder-sa@%s.iam.gserviceaccount.com", projectID, projectID), cloudBuildOP.Get("serviceAccount").String(), "uses expected SA")
@@ -98,6 +99,28 @@ func TestTFCloudBuildBuilder(t *testing.T) {
 			return true, nil
 		}
 		utils.Poll(t, pollWorkflowFn, 100, 20*time.Second)
+
+		// Poll the build to wait for it to run
+		buildListCmd := fmt.Sprintf("builds list --filter buildTriggerId='%s' --region %s --project %s --limit 1 --sort-by ~createTime", triggerId, location, projectID)
+		// poll build until complete
+		pollCloudBuild := func(cmd string) func() (bool, error) {
+			return func() (bool, error) {
+				build := gcloud.Runf(t, cmd).Array()
+				if len(build) < 1 {
+					return true, nil
+				}
+				latestWorkflowRunStatus := build[0].Get("status").String()
+				if latestWorkflowRunStatus == "SUCCESS" {
+					return false, nil
+				}
+				if latestWorkflowRunStatus == "TIMEOUT" || latestWorkflowRunStatus == "FAILURE" {
+					t.Logf("%v", build[0])
+					t.Fatalf("workflow %s failed with failureInfo %s", build[0].Get("id"), build[0].Get("failureInfo"))
+				}
+				return true, nil
+			}
+		}
+		utils.Poll(t, pollCloudBuild(buildListCmd), 100, 10*time.Second)
 
 		images := gcloud.Runf(t, "artifacts docker images list %s --include-tags", artifactRepoDockerRegistry).Array()
 		assert.Equal(1, len(images), "only one image is in registry")
