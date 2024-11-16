@@ -95,7 +95,7 @@ func (gl *GitLabClient) AddFileToProject(file []byte) {
 }
 
 func (gl *GitLabClient) DeleteProject() {
-	resp, err := gl.client.Projects.DeleteProject(gl.ProjectName())
+	resp, err := gl.client.Projects.DeleteProject(gl.ProjectName(), utils.GetDeleteProjectOptions())
 	if resp.StatusCode != 404 && err != nil {
 		gl.t.Errorf("error deleting project with status %s and error %s", resp.Status, err.Error())
 	}
@@ -114,9 +114,9 @@ func TestCloudBuildWorkspaceSimpleGitLab(t *testing.T) {
 	}
 
 	vars := map[string]interface{}{
-		"gitlab_api_access_token":      gitlabPAT,
-		"gitlab_read_api_access_token": gitlabPAT,
-		"repository_uri":               client.project.HTTPURLToRepo,
+		"gitlab_authorizer_credential":      gitlabPAT,
+		"gitlab_read_authorizer_credential": gitlabPAT,
+		"repository_uri":                    client.project.HTTPURLToRepo,
 	}
 	bpt := tft.NewTFBlueprintTest(t, tft.WithVars(vars))
 
@@ -207,9 +207,6 @@ func TestCloudBuildWorkspaceSimpleGitLab(t *testing.T) {
 					}
 					if latestWorkflowRunStatus == "TIMEOUT" || latestWorkflowRunStatus == "FAILURE" {
 						t.Logf("%v", build[0])
-						logs, err := gcloud.RunCmdE(t, fmt.Sprintf("builds log %s --region %s", build[0].Get("id"), location))
-						t.Logf("err %v", err)
-						t.Logf("logs %s", logs)
 						t.Fatalf("workflow %s failed with status %s", build[0].Get("id"), latestWorkflowRunStatus)
 						return false, nil
 					}

@@ -72,6 +72,18 @@ variable "project_id" {
   type        = string
 }
 
+variable "project_deletion_policy" {
+  description = "The deletion policy for the project created."
+  type        = string
+  default     = "PREVENT"
+}
+
+variable "project_auto_create_network" {
+  description = "Create the default network for the project created."
+  type        = bool
+  default     = false
+}
+
 variable "activate_apis" {
   description = "List of APIs to enable in the seed project."
   type        = list(string)

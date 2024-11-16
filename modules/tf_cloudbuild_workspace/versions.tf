@@ -21,16 +21,16 @@ terraform {
     google = {
       source = "hashicorp/google"
       # Exclude 4.31.0 for https://github.com/hashicorp/terraform-provider-google/issues/12226
-      version = ">= 4.17, != 4.31.0, < 6"
+      version = ">= 4.17, != 4.31.0, < 7"
     }
     google-beta = {
       source = "hashicorp/google-beta"
       # Exclude 4.31.0 for https://github.com/hashicorp/terraform-provider-google/issues/12226
-      version = ">= 4.17, != 4.31.0, < 6"
+      version = ">= 4.17, != 4.31.0, < 7"
     }
   }
 
   provider_meta "google" {
-    module_name = "blueprints/terraform/terraform-google-bootstrap:tf_cloudbuild_workspace/v8.0.0"
+    module_name = "blueprints/terraform/terraform-google-bootstrap:tf_cloudbuild_workspace/v9.0.0"
   }
 }

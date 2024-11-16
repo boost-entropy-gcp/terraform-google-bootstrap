@@ -7,7 +7,7 @@ Basic usage of this module is as follows:
 ```hcl
 module "tf-cloudbuild-core" {
   source  = "terraform-google-modules/bootstrap/google//modules/tf_cloudbuild_source"
-  version = "~> 8.0"
+  version = "~> 9.0"
 
   org_id           = var.org_id
   billing_account  = var.billing_account
@@ -38,6 +38,8 @@ This module creates:
 | group\_org\_admins | Google Group for GCP Organization Administrators | `string` | n/a | yes |
 | location | Location for build artifacts bucket | `string` | `"us-central1"` | no |
 | org\_id | GCP Organization ID | `string` | n/a | yes |
+| project\_auto\_create\_network | Create the default network for the project created. | `bool` | `false` | no |
+| project\_deletion\_policy | The deletion policy for the project created. | `string` | `"PREVENT"` | no |
 | project\_id | Custom project ID to use for project created. | `string` | `""` | no |
 | project\_labels | Labels to apply to the project. | `map(string)` | `{}` | no |
 | storage\_bucket\_labels | Labels to apply to the storage bucket. | `map(string)` | `{}` | no |

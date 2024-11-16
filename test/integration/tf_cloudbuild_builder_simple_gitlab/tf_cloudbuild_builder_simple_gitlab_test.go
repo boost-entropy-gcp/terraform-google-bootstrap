@@ -83,7 +83,7 @@ func (gl *GitLabClient) CreateProject() {
 }
 
 func (gl *GitLabClient) DeleteProject() {
-	resp, err := gl.client.Projects.DeleteProject(gl.ProjectName())
+	resp, err := gl.client.Projects.DeleteProject(gl.ProjectName(), utils.GetDeleteProjectOptions())
 	if resp.StatusCode != 404 && err != nil {
 		gl.t.Errorf("error deleting project with status %s and error %s", resp.Status, err.Error())
 	}
@@ -105,9 +105,9 @@ func TestTFCloudBuildBuilderGitLab(t *testing.T) {
 	// Testing the module's feature of appending the ".git" suffix if it's missing
 	// repoURL := strings.TrimSuffix(client.repository.GetCloneURL(), ".git")
 	vars := map[string]interface{}{
-		"gitlab_api_access_token":      gitlabPAT,
-		"gitlab_read_api_access_token": gitlabPAT,
-		"repository_uri":               client.project.HTTPURLToRepo,
+		"gitlab_authorizer_credential":      gitlabPAT,
+		"gitlab_read_authorizer_credential": gitlabPAT,
+		"repository_uri":                    client.project.HTTPURLToRepo,
 	}
 	bpt := tft.NewTFBlueprintTest(t, tft.WithVars(vars))
 
